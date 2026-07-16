@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 from matplotlib.lines import Line2D
 import streamlit as st
+
 # ══════════════════════════════════════════════════════
 #  SEITEN-KONFIGURATION
 # ══════════════════════════════════════════════════════
@@ -19,6 +20,7 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
+
 # ══════════════════════════════════════════════════════
 #  PHYSIK
 # ══════════════════════════════════════════════════════
@@ -80,7 +82,7 @@ def norm_abweichung(T_i, T_e, RF_i):
     if abs(T_e - NORM_T_E) > 0.5:
         abw.append("T_Aussen = " + str(round(T_e,1)) + " C  (Norm: " + str(int(NORM_T_E)) + " C)")
     if abs(RF_i - NORM_RF_I) > 2.0:
-        abw.append("phi_Innen = " + str(int(RF_i)) + " %  (Norm: " + str(int(NORM_RF_I)) + " %)")
+        abw.append("Relative Feuchte Innen = " + str(int(RF_i)) + " %  (Norm: " + str(int(NORM_RF_I)) + " %)")
     return abw
 
 # ══════════════════════════════════════════════════════
@@ -216,11 +218,7 @@ def draw_mollier(T_a, RF_a, T_r, RF_i, p_pa=101325.0):
                marker="s", edgecolors="white", linewidths=1.5, **pk)
 
     # Labels
-    # ── EINZIGE ÄNDERUNG: Label-Positionen für ① und ② ──────────────────
-    # Schwellwert: wenn x_a zu nah an der Y-Achse (< 2.5 g/kg),
-    # Label nach rechts setzen (ha="left") statt nach links (ha="right"),
-    # damit die Box nicht hinter die Y-Achse verschwindet.
-    LABEL_THRESHOLD = 2.5   # g/kg — darunter wird nach rechts ausgewichen
+    LABEL_THRESHOLD = 2.5
 
     def _lbl(x, y, txt, col, ha="left", va="bottom", dx=0.0, dy=0.0):
         ax.text(x + dx, y + dy, txt,
@@ -232,33 +230,32 @@ def draw_mollier(T_a, RF_a, T_r, RF_i, p_pa=101325.0):
 
     dx_r = 0.35
 
-    # ① Aussenluft — nach rechts ausweichen wenn zu nah an Y-Achse
+    # ① Aussenluft
     if x_a < LABEL_THRESHOLD:
         _lbl(x_a, T_a,
-             "① Aussenluft\nT = " + str(round(T_a,1)) + " C   phi = " + str(int(RF_a)) + " %\n"
+             u"① Aussenluft\nT = " + str(round(T_a,1)) + u" \u00b0C   \u03c6 = " + str(int(RF_a)) + " %\n"
              + "x = " + str(round(x_a,2)) + " g/kg   h = " + str(round(h_a,1)) + " kJ/kg",
              C["aussen"], ha="left", va="top", dx=dx_r, dy=-0.5)
     else:
         _lbl(x_a, T_a,
-             "① Aussenluft\nT = " + str(round(T_a,1)) + " C   phi = " + str(int(RF_a)) + " %\n"
+             u"① Aussenluft\nT = " + str(round(T_a,1)) + u" \u00b0C   \u03c6 = " + str(int(RF_a)) + " %\n"
              + "x = " + str(round(x_a,2)) + " g/kg   h = " + str(round(h_a,1)) + " kJ/kg",
              C["aussen"], ha="right", va="top", dx=-0.35, dy=-0.5)
 
-    # ② Aufgeheizt — nach rechts ausweichen wenn zu nah an Y-Achse
+    # ② Aufgeheizt
     if x_a < LABEL_THRESHOLD:
         _lbl(x_a, T_r,
-             "② Aufgeheizt  (x = konst.)\nT = " + str(round(T_r,1)) + " C   phi = " + str(round(rf_auf,1)) + " %\n"
+             u"② Aufgeheizt  (x = konst.)\nT = " + str(round(T_r,1)) + u" \u00b0C   \u03c6 = " + str(round(rf_auf,1)) + " %\n"
              + "x = " + str(round(x_a,2)) + " g/kg",
              C["aufhz"], ha="left", va="bottom", dx=dx_r, dy=0.6)
     else:
         _lbl(x_a, T_r,
-             "② Aufgeheizt  (x = konst.)\nT = " + str(round(T_r,1)) + " C   phi = " + str(round(rf_auf,1)) + " %\n"
+             u"② Aufgeheizt  (x = konst.)\nT = " + str(round(T_r,1)) + u" \u00b0C   \u03c6 = " + str(round(rf_auf,1)) + " %\n"
              + "x = " + str(round(x_a,2)) + " g/kg",
              C["aufhz"], ha="right", va="bottom", dx=-0.35, dy=0.6)
-    # ── Ende Änderung ────────────────────────────────────────────────────
 
     _lbl(x_i, T_r,
-         "③ Innenluft\nT = " + str(round(T_r,1)) + " C   phi = " + str(int(RF_i)) + " %\n"
+         u"③ Innenluft\nT = " + str(round(T_r,1)) + u" \u00b0C   \u03c6 = " + str(int(RF_i)) + " %\n"
          + "x = " + str(round(x_i,2)) + " g/kg   h = " + str(round(h_i,1)) + " kJ/kg",
          C["innen"], ha="left", va="bottom", dx=dx_r, dy=0.6)
 
@@ -266,7 +263,7 @@ def draw_mollier(T_a, RF_a, T_r, RF_i, p_pa=101325.0):
         delta_x_val = round(x_i - x_a, 2)
         sign = "+" if delta_x_val >= 0 else ""
         ax.text((x_a + x_i) / 2, T_r + 0.8,
-                "Dx = " + sign + str(delta_x_val) + " g/kg",
+                u"\u0394x = " + sign + str(delta_x_val) + " g/kg",
                 fontsize=8.5, color=C["p_feu"],
                 ha="center", va="bottom", fontweight="bold",
                 bbox=dict(boxstyle="round,pad=0.25",
@@ -275,11 +272,11 @@ def draw_mollier(T_a, RF_a, T_r, RF_i, p_pa=101325.0):
                 zorder=12, clip_on=True)
 
     _lbl(x_i, T_tau,
-         "④ Taupunkt\nT_tau = " + str(round(T_tau,1)) + " C",
+         u"④ Taupunkt\nT\u03c4 = " + str(round(T_tau,1)) + u" \u00b0C",
          C["tau"], ha="left", va="top", dx=dx_r, dy=-0.5)
 
     ax.text(0.35, T_surf + 0.7,
-            "⑤ T_krit = " + str(round(T_surf,1)) + " C   —   phi_Oberflaeche >= 80% → Schimmelgrenze",
+            u"⑤ T\u2096\u1d63\u1d35\u209c = " + str(round(T_surf,1)) + u" \u00b0C   \u2014   \u03c6_Oberfl\u00e4che \u2265 80% \u2192 Schimmelgrenze",
             fontsize=9, color=C["tkrit"],
             ha="left", va="bottom", fontweight="bold",
             bbox=dict(boxstyle="round,pad=0.3",
@@ -291,22 +288,22 @@ def draw_mollier(T_a, RF_a, T_r, RF_i, p_pa=101325.0):
     handles = [
         mpatches.Patch(color="none", label="--- Zustandspunkte ---"),
         Line2D([0],[0], marker="o", color="w", lw=0,
-               markerfacecolor=C["aussen"], markersize=10, label="① Aussenluft"),
+               markerfacecolor=C["aussen"], markersize=10, label=u"① Au\u00dfenluft"),
         Line2D([0],[0], marker="D", color="w", lw=0,
-               markerfacecolor=C["aufhz"],  markersize=9,  label="② Aufgeheizt (x=konst.)"),
+               markerfacecolor=C["aufhz"],  markersize=9,  label=u"② Aufgeheizt (x=konst.)"),
         Line2D([0],[0], marker="o", color="w", lw=0,
-               markerfacecolor=C["innen"],  markersize=10, label="③ Innenluft"),
+               markerfacecolor=C["innen"],  markersize=10, label=u"③ Innenluft"),
         Line2D([0],[0], marker="^", color="w", lw=0,
-               markerfacecolor=C["tau"],    markersize=9,  label="④ Taupunkt"),
+               markerfacecolor=C["tau"],    markersize=9,  label=u"④ Taupunkt"),
         Line2D([0],[0], marker="s", color="w", lw=0,
-               markerfacecolor=C["tkrit"],  markersize=9,  label="⑤ T_krit"),
+               markerfacecolor=C["tkrit"],  markersize=9,  label=u"⑤ T_krit"),
         mpatches.Patch(color="none", label=" "),
         mpatches.Patch(color="none", label="--- Prozesse ---"),
-        Line2D([0],[0], color=C["sat"],   lw=2.5, label="Saettigungslinie (phi=100%)"),
-        Line2D([0],[0], color=C["p_auf"], lw=2.0, label="① → ② Aufheizung"),
-        Line2D([0],[0], color=C["p_feu"], lw=2.0, label="② → ③ Feuchteproduktion"),
-        Line2D([0],[0], color=C["tau"],   lw=1.6, ls="--", label="③ → ④ Abkuehlung"),
-        Line2D([0],[0], color=C["tkrit"], lw=2.0, ls="--", label="⑤ Schimmelgrenze"),
+        Line2D([0],[0], color=C["sat"],   lw=2.5, label=u"S\u00e4ttigungslinie (\u03c6=100%)"),
+        Line2D([0],[0], color=C["p_auf"], lw=2.0, label=u"① \u2192 ② Aufheizung"),
+        Line2D([0],[0], color=C["p_feu"], lw=2.0, label=u"② \u2192 ③ Feuchteproduktion"),
+        Line2D([0],[0], color=C["tau"],   lw=1.6, ls="--", label=u"③ \u2192 ④ Abk\u00fchlung"),
+        Line2D([0],[0], color=C["tkrit"], lw=2.0, ls="--", label=u"⑤ Schimmelgrenze"),
     ]
     leg = ax.legend(handles=handles, loc="lower right",
                     fontsize=8, framealpha=0.97,
@@ -316,9 +313,9 @@ def draw_mollier(T_a, RF_a, T_r, RF_i, p_pa=101325.0):
 
     ax.set_xlim(0, X_MAX)
     ax.set_ylim(-20, 50)
-    ax.set_xlabel("Feuchtegehalt   x   [g/kg trockene Luft]",
+    ax.set_xlabel(u"Feuchtegehalt   x   [g/kg trockene Luft]",
                   fontsize=12, labelpad=10, color="#333333")
-    ax.set_ylabel("Temperatur   T   [°C]",
+    ax.set_ylabel(u"Temperatur   T   [\u00b0C]",
                   fontsize=12, labelpad=10, color="#333333")
     ax.tick_params(axis="both", labelsize=9, colors="#555555")
     ax.grid(True, color=C["grid"], lw=0.8, zorder=0)
@@ -334,11 +331,11 @@ def draw_mollier(T_a, RF_a, T_r, RF_i, p_pa=101325.0):
     ]
     ax2.set_xticks(x_ticks)
     ax2.set_xticklabels([str(round(v,1)) for v in pd_vals], fontsize=8.5)
-    ax2.set_xlabel("Wasserdampf-Partialdruck   p_D   [hPa]",
+    ax2.set_xlabel(u"Wasserdampf-Partialdruck   p_D   [hPa]",
                    fontsize=10, labelpad=8, color="#555555")
 
     ax.set_title(
-        "Mollier  h-x-Diagramm  —  Feuchte Luft   (p = 1013 hPa)",
+        u"Mollier  h-x-Diagramm  \u2014  Feuchte Luft   (p = 1013 hPa)",
         fontsize=14, fontweight="bold", pad=14, color="#1A252F"
     )
     plt.tight_layout(pad=1.5)
@@ -434,8 +431,8 @@ st.markdown(
 st.markdown(
     "<div class='norm-box'>"
     "📐 Grundlage: DIN 4108-2 Beiblatt 2  |  "
-    "Schimmelkriterium: phi_Oberflaeche >= 80%  |  "
-    "Mindest-f_Rsi = 0,70"
+    "Schimmelkriterium: &phi;_Oberfl&auml;che &ge; 80%  |  "
+    "Mindest-f<sub>Rsi</sub> = 0,70"
     "</div>",
     unsafe_allow_html=True
 )
@@ -446,20 +443,20 @@ st.markdown(
 with st.sidebar:
     st.markdown("## Eingaben")
     st.markdown("---")
-    st.markdown("### Aussenluft")
+    st.markdown("### Außenluft")
     T_a  = st.slider("Temperatur T_a [°C]",  -30.0, 20.0,  -5.0, 0.5)
-    RF_a = st.slider("Relative Feuchte phi_a [%]", 0, 100, 80, 1)
+    RF_a = st.slider("Relative Feuchte φ_a [%]", 0, 100, 80, 1)
     st.markdown("---")
     st.markdown("### Innenraum")
     T_r  = st.slider("Temperatur T_r [°C]", 15.0, 35.0, 20.0, 0.5)
-    RF_i = st.slider("Relative Feuchte phi_i [%]", 0, 100, 50, 1)
+    RF_i = st.slider("Relative Feuchte φ_i [%]", 0, 100, 50, 1)
     st.markdown("---")
     # Schimmelgrenz-Tabelle in Sidebar
-    st.markdown("### Schimmelgrenze phi_i vs T_krit")
+    st.markdown("### Schimmelgrenze φ_i vs T_krit")
     st.markdown(
         "<small style='color:#7F8C8D;'>"
-        "Bauteil darf bis T_krit abkuehlen<br>"
-        "ohne Schimmel (phi_surf >= 80%)"
+        "Bauteil darf bis T_krit abk&uuml;hlen<br>"
+        "ohne Schimmel (&phi;_Oberfl&auml;che &ge; 80%)"
         "</small>",
         unsafe_allow_html=True
     )
@@ -468,7 +465,7 @@ with st.sidebar:
         ts_t = critical_surface_temp(T_r, float(rf_t))
         tbl_rows.append(
             "<div class='tbl-row'>"
-            "<span style='color:#555;'>phi_i = " + str(rf_t) + " %</span>"
+            "<span style='color:#555;'>&#966;_i = " + str(rf_t) + " %</span>"
             "<span style='color:#CA6F1E;font-weight:bold;'>" + str(round(ts_t,1)) + " °C</span>"
             "</div>"
         )
@@ -509,7 +506,7 @@ st.markdown("---")
 c1, c2, c3, c4 = st.columns(4)
 with c1:
     st.metric("⑤ T_krit", str(round(T_surf,1)) + " °C",
-              help="Mindest-Oberflaechentemperatur — darunter Schimmelgefahr")
+              help="Mindest-Oberflächentemperatur — darunter Schimmelgefahr")
 with c2:
     st.metric("④ Taupunkt", str(round(T_tau,1)) + " °C",
               help="Kondensationspunkt der Innenluft")
@@ -519,7 +516,7 @@ with c3:
 with c4:
     delta_x = kv["delta_x"]
     sign = "+" if delta_x >= 0 else ""
-    st.metric("Dx Feuchte", sign + str(round(delta_x,2)) + " g/kg",
+    st.metric("Δx Feuchte", sign + str(round(delta_x,2)) + " g/kg",
               help="Feuchteproduktion im Raum")
 st.markdown("---")
 
@@ -530,12 +527,12 @@ st.markdown("## Ergebnis-Analyse")
 st.markdown(
     "<div class='orange-box'>"
     "<b style='color:#CA6F1E;font-size:1.15em;'>⑤  T_krit = " + str(round(T_surf,1)) + " °C</b><br><br>"
-    "Bei diesen Randbedingungen darf das Bauteil (Wand, Ecke, Waermebruecke) "
-    "bis auf <b>" + str(round(T_surf,1)) + " °C</b> abkuehlen — "
-    "<b>darunter wird phi_Oberflaeche >= 80% erreicht → Schimmelgefahr!</b><br><br>"
+    "Bei diesen Randbedingungen darf das Bauteil (Wand, Ecke, Wärmebrücke) "
+    "bis auf <b>" + str(round(T_surf,1)) + " °C</b> abkühlen — "
+    "<b>darunter wird &phi;_Oberfläche &ge; 80% erreicht &rarr; Schimmelgefahr!</b><br><br>"
     "<span style='color:#7F8C8D;font-size:0.88em;'>"
     "Taupunkt: " + str(round(T_tau,1)) + " °C  |  "
-    "T_krit liegt immer ueber dem Taupunkt, da Schimmel schon vor dem Kondensieren entsteht."
+    "T_krit liegt immer über dem Taupunkt, da Schimmel schon vor dem Kondensieren entsteht."
     "</span>"
     "</div>",
     unsafe_allow_html=True
@@ -552,13 +549,13 @@ if ist_norm:
         "<b>Norm-Randbedingungen DIN 4108-2 Beiblatt 2:</b><br>"
         "&nbsp;&nbsp;T_i = " + str(int(NORM_T_I)) + " °C  |  "
         "T_e = " + str(int(NORM_T_E)) + " °C  |  "
-        "phi_i = " + str(int(NORM_RF_I)) + " %<br><br>"
+        "&phi;_i = " + str(int(NORM_RF_I)) + " %<br><br>"
         "<b>Der Norm-Nachweis ergibt:</b><br>"
         "&nbsp;&nbsp;T_krit = <b>" + str(round(T_surf,1)) + " °C</b><br>"
-        "&nbsp;&nbsp;Erforderlicher f_Rsi,min = <b>" + str(round(f_rsi_min,3)) + "</b><br><br>"
-        "<b>Das Bauteil muss einen f_Rsi >= 0,70 aufweisen.</b><br>"
+        "&nbsp;&nbsp;Erforderlicher f<sub>Rsi,min</sub> = <b>" + str(round(f_rsi_min,3)) + "</b><br><br>"
+        "<b>Das Bauteil muss einen f<sub>Rsi</sub> &ge; 0,70 aufweisen.</b><br>"
         "<span style='color:#555;font-size:0.88em;'>"
-        "Den tatsaechlichen f_Rsi aus dem Waermebruecken-Detailnachweis ermitteln."
+        "Den tatsächlichen f<sub>Rsi</sub> aus dem Wärmebrücken-Detailnachweis ermitteln."
         "</span>"
         "</div>",
         unsafe_allow_html=True
@@ -575,7 +572,7 @@ else:
         "<br><span style='color:#555;font-size:0.88em;'>"
         "Norm: T_i = " + str(int(NORM_T_I)) + " °C  |  "
         "T_e = " + str(int(NORM_T_E)) + " °C  |  "
-        "phi_i = " + str(int(NORM_RF_I)) + " %"
+        "&phi;_i = " + str(int(NORM_RF_I)) + " %"
         "</span>"
         "</div>",
         unsafe_allow_html=True
@@ -583,18 +580,18 @@ else:
     st.markdown(
         "<div class='blue-box'>"
         "<b style='color:#1A5276;'>Was bedeutet das?</b><br><br>"
-        "Die berechnete T_krit = <b>" + str(round(T_surf,1)) + " °C</b> gilt fuer "
+        "Die berechnete T_krit = <b>" + str(round(T_surf,1)) + " °C</b> gilt für "
         "<b>diese spezifischen Randbedingungen</b> "
         "(T_i = " + str(round(T_r,1)) + " °C, "
-        "phi_i = " + str(int(RF_i)) + " %, "
+        "&phi;_i = " + str(int(RF_i)) + " %, "
         "T_e = " + str(round(T_a,1)) + " °C).<br><br>"
         "Diese Berechnung ist kein Norm-Nachweis nach DIN 4108-2, "
-        "sondern eine <b>individuelle Analyse</b> fuer die tatsaechlichen Randbedingungen.<br><br>"
+        "sondern eine <b>individuelle Analyse</b> für die tatsächlichen Randbedingungen.<br><br>"
         "<b>Anwendungsbeispiele:</b><br>"
-        "&nbsp;&nbsp;• Bestandsgebaeude mit reduzierter Raumfeuchte (z.B. phi_i &le; 35 %)<br>"
-        "&nbsp;&nbsp;• Denkmalgeschuetzte Gebaeude, bei denen Daemmung nicht moeglich ist<br>"
-        "&nbsp;&nbsp;• Pruefung: Ab welcher Wandtemperatur wird es bei der tatsaechlichen phi_i kritisch?<br>"
-        "&nbsp;&nbsp;• Waermebruecken-Analyse mit abweichenden Klimabedingungen"
+        "&nbsp;&nbsp;• Bestandsgebäude mit reduzierter Raumfeuchte (z.B. &phi;_i &le; 35 %)<br>"
+        "&nbsp;&nbsp;• Denkmalgeschützte Gebäude, bei denen Dämmung nicht möglich ist<br>"
+        "&nbsp;&nbsp;• Prüfung: Ab welcher Wandtemperatur wird es bei der tatsächlichen &phi;_i kritisch?<br>"
+        "&nbsp;&nbsp;• Wärmebrücken-Analyse mit abweichenden Klimabedingungen"
         "</div>",
         unsafe_allow_html=True
     )
@@ -602,18 +599,18 @@ else:
     st.markdown(
         "<div class='purple-box'>"
         "<b style='color:#6C3483;font-size:1.05em;'>📌  Praktische Aussage:</b><br><br>"
-        "Mit T_i = " + str(round(T_r,1)) + " °C und phi_i = " + str(int(RF_i)) + " % gilt:<br>"
-        "→ Das Bauteil muss waermer als <b>" + str(round(T_surf,1)) + " °C</b> bleiben.<br><br>"
-        "<b>Erforderlicher Mindest-f_Rsi:</b><br>"
-        "<span style='font-size:1.4em;color:#6C3483;'><b>f_Rsi,min = " + f_rsi_str + "</b></span><br><br>"
+        "Mit T_i = " + str(round(T_r,1)) + " °C und &phi;_i = " + str(int(RF_i)) + " % gilt:<br>"
+        "&rarr; Das Bauteil muss wärmer als <b>" + str(round(T_surf,1)) + " °C</b> bleiben.<br><br>"
+        "<b>Erforderlicher Mindest-f<sub>Rsi</sub>:</b><br>"
+        "<span style='font-size:1.4em;color:#6C3483;'><b>f<sub>Rsi,min</sub> = " + f_rsi_str + "</b></span><br><br>"
         "<span style='color:#555;font-size:0.85em;'>"
-        "Formel: f_Rsi,min = (T_krit - T_e) / (T_i - T_e) = "
-        "(" + str(round(T_surf,1)) + " - " + str(round(T_a,1)) + ") / "
-        "(" + str(round(T_r,1)) + " - " + str(round(T_a,1)) + ") = " + f_rsi_str + "<br><br>"
-        "Hinweis: Der Norm-Mindest-f_Rsi von 0,70 gilt ausschliesslich fuer die Norm-Randbedingungen "
+        "Formel: f<sub>Rsi,min</sub> = (T_krit &minus; T_e) / (T_i &minus; T_e) = "
+        "(" + str(round(T_surf,1)) + " &minus; " + str(round(T_a,1)) + ") / "
+        "(" + str(round(T_r,1)) + " &minus; " + str(round(T_a,1)) + ") = " + f_rsi_str + "<br><br>"
+        "Hinweis: Der Norm-Mindest-f<sub>Rsi</sub> von 0,70 gilt ausschließlich für die Norm-Randbedingungen "
         "(T_i = " + str(int(NORM_T_I)) + " °C, T_e = " + str(int(NORM_T_E)) + " °C, "
-        "phi_i = " + str(int(NORM_RF_I)) + " %). "
-        "Bei abweichenden Randbedingungen ergibt sich ein anderer erforderlicher f_Rsi-Wert."
+        "&phi;_i = " + str(int(NORM_RF_I)) + " %). "
+        "Bei abweichenden Randbedingungen ergibt sich ein anderer erforderlicher f<sub>Rsi</sub>-Wert."
         "</span>"
         "</div>",
         unsafe_allow_html=True
@@ -628,17 +625,17 @@ col1, col2 = st.columns(2)
 with col1:
     st.markdown(
         "<div class='card-aussen'>"
-        "<b style='color:#1A5276;font-size:1.0em;'>🔵  ① Aussenluft</b><br><br>"
+        "<b style='color:#1A5276;font-size:1.0em;'>🔵  ① Außenluft</b><br><br>"
         "<div class='tbl-row'><span style='color:#555;'>Temperatur T_e</span>"
         "<span><b>" + str(round(T_a,1)) + " °C</b></span></div>"
-        "<div class='tbl-row'><span style='color:#555;'>Relative Feuchte phi_e</span>"
+        "<div class='tbl-row'><span style='color:#555;'>Relative Feuchte &phi;_e</span>"
         "<span><b>" + str(int(RF_a)) + " %</b></span></div>"
         "<div class='tbl-row'><span style='color:#555;'>Feuchtegehalt x</span>"
         "<span><b>" + str(round(kv["x_a"],3)) + " g/kg</b></span></div>"
         "<div class='tbl-row'><span style='color:#555;'>Enthalpie h</span>"
         "<span><b>" + str(round(kv["h_a"],1)) + " kJ/kg</b></span></div>"
         "<br><span style='color:#888;font-size:0.85em;font-style:italic;'>"
-        "Kalte Luft enthaelt wenig absoluten Wasserdampf trotz hoher relativer Feuchte."
+        "Kalte Luft enthält wenig absoluten Wasserdampf trotz hoher relativer Feuchte."
         "</span>"
         "</div>",
         unsafe_allow_html=True
@@ -648,12 +645,12 @@ with col1:
         "<b style='color:#1A7A42;font-size:1.0em;'>🟢  ② Aufgeheizte Luft (x = konst.)</b><br><br>"
         "<div class='tbl-row'><span style='color:#555;'>Temperatur T_r</span>"
         "<span><b>" + str(round(T_r,1)) + " °C</b></span></div>"
-        "<div class='tbl-row'><span style='color:#555;'>Relative Feuchte phi</span>"
+        "<div class='tbl-row'><span style='color:#555;'>Relative Feuchte &phi;</span>"
         "<span><b>" + str(round(rf_auf,1)) + " %</b></span></div>"
         "<div class='tbl-row'><span style='color:#555;'>Feuchtegehalt x</span>"
         "<span><b>" + str(round(kv["x_a"],3)) + " g/kg</b></span></div>"
         "<br><span style='color:#888;font-size:0.85em;font-style:italic;'>"
-        "Beim Aufheizen sinkt phi von " + str(int(RF_a)) + " % auf " + str(round(rf_auf,1)) + " % — x bleibt konstant."
+        "Beim Aufheizen sinkt &phi; von " + str(int(RF_a)) + " % auf " + str(round(rf_auf,1)) + " % — x bleibt konstant."
         "</span>"
         "</div>",
         unsafe_allow_html=True
@@ -664,33 +661,33 @@ with col2:
         "<b style='color:#7B241C;font-size:1.0em;'>🔴  ③ Innenluft</b><br><br>"
         "<div class='tbl-row'><span style='color:#555;'>Temperatur T_r</span>"
         "<span><b>" + str(round(T_r,1)) + " °C</b></span></div>"
-        "<div class='tbl-row'><span style='color:#555;'>Relative Feuchte phi_i</span>"
+        "<div class='tbl-row'><span style='color:#555;'>Relative Feuchte &phi;_i</span>"
         "<span><b>" + str(int(RF_i)) + " %</b></span></div>"
         "<div class='tbl-row'><span style='color:#555;'>Feuchtegehalt x</span>"
         "<span><b>" + str(round(kv["x_i"],3)) + " g/kg</b></span></div>"
         "<div class='tbl-row'><span style='color:#555;'>Enthalpie h</span>"
         "<span><b>" + str(round(kv["h_i"],1)) + " kJ/kg</b></span></div>"
-        "<div class='tbl-row'><span style='color:#555;'>Dx Feuchteproduktion</span>"
-        "<span><b>" + ("+") + str(round(kv["delta_x"],2)) + " g/kg</b></span></div>"
+        "<div class='tbl-row'><span style='color:#555;'>&Delta;x Feuchteproduktion</span>"
+        "<span><b>+" + str(round(kv["delta_x"],2)) + " g/kg</b></span></div>"
         "<br><span style='color:#888;font-size:0.85em;font-style:italic;'>"
-        "Dx = durch Nutzung hinzugefuegte Feuchtigkeit (Kochen, Duschen, Personen)."
+        "&Delta;x = durch Nutzung hinzugefügte Feuchtigkeit (Kochen, Duschen, Personen)."
         "</span>"
         "</div>",
         unsafe_allow_html=True
     )
     st.markdown(
         "<div class='card-tau'>"
-        "<b style='color:#CA6F1E;font-size:1.0em;'>🌡️  ④ Taupunkt  &  ⑤ T_krit</b><br><br>"
-        "<div class='tbl-row'><span style='color:#555;'>Taupunkt T_tau</span>"
+        "<b style='color:#CA6F1E;font-size:1.0em;'>🌡️  ④ Taupunkt  &amp;  ⑤ T_krit</b><br><br>"
+        "<div class='tbl-row'><span style='color:#555;'>Taupunkt T&tau;</span>"
         "<span><b>" + str(round(T_tau,1)) + " °C</b></span></div>"
         "<div class='tbl-row'><span style='color:#555;'>T_krit (Schimmelgrenze)</span>"
         "<span><b>" + str(round(T_surf,1)) + " °C</b></span></div>"
-        "<div class='tbl-row'><span style='color:#555;'>Erforderl. f_Rsi,min</span>"
+        "<div class='tbl-row'><span style='color:#555;'>Erforderl. f<sub>Rsi,min</sub></span>"
         "<span><b>" + str(round(f_rsi_min,3)) + "</b></span></div>"
-        "<div class='tbl-row'><span style='color:#555;'>Norm-Mindest-f_Rsi</span>"
+        "<div class='tbl-row'><span style='color:#555;'>Norm-Mindest-f<sub>Rsi</sub></span>"
         "<span><b>0,70 (DIN 4108-2)</b></span></div>"
         "<br><span style='color:#888;font-size:0.85em;font-style:italic;'>"
-        "T_krit (" + str(round(T_surf,1)) + " °C) > Taupunkt (" + str(round(T_tau,1)) + " °C): "
+        "T_krit (" + str(round(T_surf,1)) + " °C) &gt; Taupunkt (" + str(round(T_tau,1)) + " °C): "
         "Schimmel entsteht vor dem sichtbaren Kondensieren."
         "</span>"
         "</div>",
@@ -701,20 +698,20 @@ with col2:
 #  BLOCK 4 — UMKEHR-ANALYSE
 # ══════════════════════════════════════════════════════
 st.markdown("---")
-st.markdown("### Umkehr-Analyse: Bei bekannter Bauteil-Oberflachentemperatur")
+st.markdown("### Umkehr-Analyse: Bei bekannter Bauteil-Oberflächentemperatur")
 st.markdown(
     "<div class='blue-box'>"
-    "Wenn Sie die <b>tatsaechliche Oberflaechentemperatur</b> Ihres Bauteils "
-    "aus einem Waermebruecken-Nachweis kennen, koennen Sie hier die "
-    "<b>maximale zulaessige Innenraumfeuchte phi_i</b> ablesen:<br>"
+    "Wenn Sie die <b>tatsächliche Oberflächentemperatur</b> Ihres Bauteils "
+    "aus einem Wärmebrücken-Nachweis kennen, können Sie hier die "
+    "<b>maximale zulässige Innenraumfeuchte &phi;_i</b> ablesen:<br>"
     "<span style='font-size:0.85em;color:#666;'>"
-    "phi_i,max = p_sat(T_Oberflaeche) x 80% / p_sat(T_i) x 100"
+    "&phi;_i,max = p_sat(T_Oberfläche) &times; 80% / p_sat(T_i) &times; 100"
     "</span>"
     "</div>",
     unsafe_allow_html=True
 )
 T_wb = st.slider(
-    "Oberflaechentemperatur aus Waermebruecken-Nachweis [°C]",
+    "Oberflächentemperatur aus Wärmebrücken-Nachweis [°C]",
     min_value=-20.0, max_value=35.0,
     value=round(T_surf, 1), step=0.1
 )
@@ -735,17 +732,17 @@ else:
 st.markdown(
     "<div class='" + box_cls + "'>"
     "<b style='color:" + col_txt + ";font-size:1.1em;'>"
-    + ico + "  T_Oberflaeche = " + str(round(T_wb,1)) + " °C</b><br><br>"
-    "Maximale zulaessige Innenraumfeuchte:<br>"
+    + ico + "  T_Oberfläche = " + str(round(T_wb,1)) + " °C</b><br><br>"
+    "Maximale zulässige Innenraumfeuchte:<br>"
     "<span style='font-size:1.5em;color:" + col_txt + ";'>"
-    "<b>phi_i,max = " + str(round(rf_max,1)) + " %</b></span><br><br>"
-    "Solange phi_i unter <b>" + str(round(rf_max,1)) + " %</b> bleibt, "
-    "wird an dieser Oberflaeche (" + str(round(T_wb,1)) + " °C) "
-    "keine phi_Oberflaeche >= 80% erreicht → kein Schimmelrisiko.<br><br>"
+    "<b>&phi;_i,max = " + str(round(rf_max,1)) + " %</b></span><br><br>"
+    "Solange &phi;_i unter <b>" + str(round(rf_max,1)) + " %</b> bleibt, "
+    "wird an dieser Oberfläche (" + str(round(T_wb,1)) + " °C) "
+    "keine &phi;_Oberfläche &ge; 80% erreicht &rarr; kein Schimmelrisiko.<br><br>"
     "<span style='color:#666;font-size:0.85em;'>"
-    "Zugehoeriger f_Rsi: " + str(round(f_rsi_wb,3)) + "<br>"
-    "Formel: phi_i,max = p_sat(" + str(round(T_wb,1)) + " °C) x 80% "
-    "/ p_sat(" + str(round(T_r,1)) + " °C) x 100"
+    "Zugehöriger f<sub>Rsi</sub>: " + str(round(f_rsi_wb,3)) + "<br>"
+    "Formel: &phi;_i,max = p_sat(" + str(round(T_wb,1)) + " °C) &times; 80% "
+    "/ p_sat(" + str(round(T_r,1)) + " °C) &times; 100"
     "</span>"
     "</div>",
     unsafe_allow_html=True
