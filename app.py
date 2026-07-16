@@ -451,7 +451,6 @@ with st.sidebar:
     T_r  = st.slider("Temperatur T_r [°C]", 15.0, 35.0, 20.0, 0.5)
     RF_i = st.slider("Relative Feuchte φ_i [%]", 0, 100, 50, 1)
     st.markdown("---")
-    # Schimmelgrenz-Tabelle in Sidebar
     st.markdown("### Schimmelgrenze φ_i vs T_krit")
     st.markdown(
         "<small style='color:#7F8C8D;'>"
@@ -585,13 +584,8 @@ else:
         "(T_i = " + str(round(T_r,1)) + " °C, "
         "&phi;_i = " + str(int(RF_i)) + " %, "
         "T_e = " + str(round(T_a,1)) + " °C).<br><br>"
-        "Diese Berechnung ist kein Norm-Nachweis nach DIN 4108-2, "
-        "sondern eine <b>individuelle Analyse</b> für die tatsächlichen Randbedingungen.<br><br>"
-        "<b>Anwendungsbeispiele:</b><br>"
-        "&nbsp;&nbsp;• Bestandsgebäude mit reduzierter Raumfeuchte (z.B. &phi;_i &le; 35 %)<br>"
-        "&nbsp;&nbsp;• Denkmalgeschützte Gebäude, bei denen Dämmung nicht möglich ist<br>"
-        "&nbsp;&nbsp;• Prüfung: Ab welcher Wandtemperatur wird es bei der tatsächlichen &phi;_i kritisch?<br>"
-        "&nbsp;&nbsp;• Wärmebrücken-Analyse mit abweichenden Klimabedingungen"
+        "Diese Berechnung ist kein Norm-Nachweis nach DIN 4108-2, sondern eine "
+        "<b>individuelle Analyse</b> für die tatsächlichen Randbedingungen."
         "</div>",
         unsafe_allow_html=True
     )
