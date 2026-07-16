@@ -10,7 +10,6 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 from matplotlib.lines import Line2D
 import streamlit as st
-
 # ══════════════════════════════════════════════════════
 #  SEITEN-KONFIGURATION
 # ══════════════════════════════════════════════════════
@@ -20,7 +19,6 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
-
 # ══════════════════════════════════════════════════════
 #  PHYSIK
 # ══════════════════════════════════════════════════════
@@ -32,8 +30,8 @@ def p_sat(T_C):
 
 def x_from_T_RF(T_C, RF, p_pa=101325.0):
     p_ws = float(p_sat(T_C))
-    p_w = (RF / 100.0) * p_ws
-    d = p_pa - p_w
+    p_w  = (RF / 100.0) * p_ws
+    d    = p_pa - p_w
     return 0.62198 * p_w / d * 1000.0 if d > 0 else 0.0
 
 def enthalpy_kJ(T_C, x_gkg):
@@ -48,7 +46,7 @@ def dew_point(T_C, RF):
 
 def critical_surface_temp(T_r, RF_i, p_pa=101325.0, rf_limit=80.0):
     p_w_i = (RF_i / 100.0) * float(p_sat(T_r))
-    T_s = float(T_r)
+    T_s   = float(T_r)
     for _ in range(8000):
         if p_w_i / float(p_sat(T_s)) * 100.0 >= rf_limit:
             break
@@ -64,7 +62,7 @@ def calc_f_rsi_min(T_surf, T_i, T_e):
 def max_rf_for_surface_temp(T_surf, T_r, rf_limit=80.0):
     p_sat_surf = float(p_sat(T_surf))
     p_sat_room = float(p_sat(T_r))
-    p_w_max = (rf_limit / 100.0) * p_sat_surf
+    p_w_max    = (rf_limit / 100.0) * p_sat_surf
     return min(p_w_max / p_sat_room * 100.0, 100.0)
 
 # ══════════════════════════════════════════════════════
@@ -108,7 +106,6 @@ def draw_mollier(T_a, RF_a, T_r, RF_i, p_pa=101325.0):
     fig, ax = plt.subplots(figsize=(13, 8), dpi=120)
     ax.set_facecolor(C["bg"])
     fig.patch.set_facecolor("#FFFFFF")
-
     for spine in ax.spines.values():
         spine.set_linewidth(1.4)
         spine.set_color("#AAAAAA")
@@ -219,6 +216,12 @@ def draw_mollier(T_a, RF_a, T_r, RF_i, p_pa=101325.0):
                marker="s", edgecolors="white", linewidths=1.5, **pk)
 
     # Labels
+    # ── EINZIGE ÄNDERUNG: Label-Positionen für ① und ② ──────────────────
+    # Schwellwert: wenn x_a zu nah an der Y-Achse (< 2.5 g/kg),
+    # Label nach rechts setzen (ha="left") statt nach links (ha="right"),
+    # damit die Box nicht hinter die Y-Achse verschwindet.
+    LABEL_THRESHOLD = 2.5   # g/kg — darunter wird nach rechts ausgewichen
+
     def _lbl(x, y, txt, col, ha="left", va="bottom", dx=0.0, dy=0.0):
         ax.text(x + dx, y + dy, txt,
                 fontsize=8.5, color=col, ha=ha, va=va,
@@ -227,17 +230,32 @@ def draw_mollier(T_a, RF_a, T_r, RF_i, p_pa=101325.0):
                           fc="white", ec=col, alpha=0.93, lw=1.1),
                 zorder=12, clip_on=True)
 
-    dx_r, dx_l = 0.35, -0.35
+    dx_r = 0.35
 
-    _lbl(x_a, T_a,
-         "① Aussenluft\nT = " + str(round(T_a,1)) + " C   phi = " + str(int(RF_a)) + " %\n"
-         + "x = " + str(round(x_a,2)) + " g/kg   h = " + str(round(h_a,1)) + " kJ/kg",
-         C["aussen"], ha="right", va="top", dx=dx_l, dy=-0.5)
+    # ① Aussenluft — nach rechts ausweichen wenn zu nah an Y-Achse
+    if x_a < LABEL_THRESHOLD:
+        _lbl(x_a, T_a,
+             "① Aussenluft\nT = " + str(round(T_a,1)) + " C   phi = " + str(int(RF_a)) + " %\n"
+             + "x = " + str(round(x_a,2)) + " g/kg   h = " + str(round(h_a,1)) + " kJ/kg",
+             C["aussen"], ha="left", va="top", dx=dx_r, dy=-0.5)
+    else:
+        _lbl(x_a, T_a,
+             "① Aussenluft\nT = " + str(round(T_a,1)) + " C   phi = " + str(int(RF_a)) + " %\n"
+             + "x = " + str(round(x_a,2)) + " g/kg   h = " + str(round(h_a,1)) + " kJ/kg",
+             C["aussen"], ha="right", va="top", dx=-0.35, dy=-0.5)
 
-    _lbl(x_a, T_r,
-         "② Aufgeheizt  (x = konst.)\nT = " + str(round(T_r,1)) + " C   phi = " + str(round(rf_auf,1)) + " %\n"
-         + "x = " + str(round(x_a,2)) + " g/kg",
-         C["aufhz"], ha="right", va="bottom", dx=dx_l, dy=0.6)
+    # ② Aufgeheizt — nach rechts ausweichen wenn zu nah an Y-Achse
+    if x_a < LABEL_THRESHOLD:
+        _lbl(x_a, T_r,
+             "② Aufgeheizt  (x = konst.)\nT = " + str(round(T_r,1)) + " C   phi = " + str(round(rf_auf,1)) + " %\n"
+             + "x = " + str(round(x_a,2)) + " g/kg",
+             C["aufhz"], ha="left", va="bottom", dx=dx_r, dy=0.6)
+    else:
+        _lbl(x_a, T_r,
+             "② Aufgeheizt  (x = konst.)\nT = " + str(round(T_r,1)) + " C   phi = " + str(round(rf_auf,1)) + " %\n"
+             + "x = " + str(round(x_a,2)) + " g/kg",
+             C["aufhz"], ha="right", va="bottom", dx=-0.35, dy=0.6)
+    # ── Ende Änderung ────────────────────────────────────────────────────
 
     _lbl(x_i, T_r,
          "③ Innenluft\nT = " + str(round(T_r,1)) + " C   phi = " + str(int(RF_i)) + " %\n"
@@ -324,7 +342,6 @@ def draw_mollier(T_a, RF_a, T_r, RF_i, p_pa=101325.0):
         fontsize=14, fontweight="bold", pad=14, color="#1A252F"
     )
     plt.tight_layout(pad=1.5)
-
     return fig, dict(
         x_a=x_a, x_i=x_i, h_a=h_a, h_i=h_i,
         T_tau=T_tau, T_surf=T_surf,
@@ -437,7 +454,6 @@ with st.sidebar:
     T_r  = st.slider("Temperatur T_r [°C]", 15.0, 35.0, 20.0, 0.5)
     RF_i = st.slider("Relative Feuchte phi_i [%]", 0, 100, 50, 1)
     st.markdown("---")
-
     # Schimmelgrenz-Tabelle in Sidebar
     st.markdown("### Schimmelgrenze phi_i vs T_krit")
     st.markdown(
@@ -505,14 +521,12 @@ with c4:
     sign = "+" if delta_x >= 0 else ""
     st.metric("Dx Feuchte", sign + str(round(delta_x,2)) + " g/kg",
               help="Feuchteproduktion im Raum")
-
 st.markdown("---")
 
 # ══════════════════════════════════════════════════════
 #  BLOCK 1 — T_KRIT ERKLARUNG
 # ══════════════════════════════════════════════════════
 st.markdown("## Ergebnis-Analyse")
-
 st.markdown(
     "<div class='orange-box'>"
     "<b style='color:#CA6F1E;font-size:1.15em;'>⑤  T_krit = " + str(round(T_surf,1)) + " °C</b><br><br>"
@@ -553,7 +567,6 @@ else:
     abw_html = ""
     for a in abw_liste:
         abw_html += "&nbsp;&nbsp;⚠️  " + a + "<br>"
-
     st.markdown(
         "<div class='abw-box'>"
         "<b style='color:#A04000;font-size:1.05em;'>⚠️  Abweichende Randbedingungen — kein Norm-Nachweis</b><br><br>"
@@ -567,7 +580,6 @@ else:
         "</div>",
         unsafe_allow_html=True
     )
-
     st.markdown(
         "<div class='blue-box'>"
         "<b style='color:#1A5276;'>Was bedeutet das?</b><br><br>"
@@ -586,7 +598,6 @@ else:
         "</div>",
         unsafe_allow_html=True
     )
-
     f_rsi_str = str(round(f_rsi_min,3))
     st.markdown(
         "<div class='purple-box'>"
@@ -613,9 +624,7 @@ else:
 # ══════════════════════════════════════════════════════
 st.markdown("---")
 st.markdown("### Zustandspunkte im Detail")
-
 col1, col2 = st.columns(2)
-
 with col1:
     st.markdown(
         "<div class='card-aussen'>"
@@ -634,7 +643,6 @@ with col1:
         "</div>",
         unsafe_allow_html=True
     )
-
     st.markdown(
         "<div class='card-aufhz'>"
         "<b style='color:#1A7A42;font-size:1.0em;'>🟢  ② Aufgeheizte Luft (x = konst.)</b><br><br>"
@@ -650,7 +658,6 @@ with col1:
         "</div>",
         unsafe_allow_html=True
     )
-
 with col2:
     st.markdown(
         "<div class='card-innen'>"
@@ -671,7 +678,6 @@ with col2:
         "</div>",
         unsafe_allow_html=True
     )
-
     st.markdown(
         "<div class='card-tau'>"
         "<b style='color:#CA6F1E;font-size:1.0em;'>🌡️  ④ Taupunkt  &  ⑤ T_krit</b><br><br>"
@@ -696,7 +702,6 @@ with col2:
 # ══════════════════════════════════════════════════════
 st.markdown("---")
 st.markdown("### Umkehr-Analyse: Bei bekannter Bauteil-Oberflachentemperatur")
-
 st.markdown(
     "<div class='blue-box'>"
     "Wenn Sie die <b>tatsaechliche Oberflaechentemperatur</b> Ihres Bauteils "
@@ -708,29 +713,25 @@ st.markdown(
     "</div>",
     unsafe_allow_html=True
 )
-
 T_wb = st.slider(
     "Oberflaechentemperatur aus Waermebruecken-Nachweis [°C]",
     min_value=-20.0, max_value=35.0,
     value=round(T_surf, 1), step=0.1
 )
-
-rf_max = max_rf_for_surface_temp(T_wb, T_r)
+rf_max   = max_rf_for_surface_temp(T_wb, T_r)
 f_rsi_wb = calc_f_rsi_min(T_wb, T_r, T_a)
-
 if rf_max >= 60:
     box_cls = "green-box"
-    ico = "✅"
+    ico     = "✅"
     col_txt = "#1A7A42"
 elif rf_max >= 45:
     box_cls = "orange-box"
-    ico = "⚠️"
+    ico     = "⚠️"
     col_txt = "#9A7D0A"
 else:
     box_cls = "abw-box"
-    ico = "🔴"
+    ico     = "🔴"
     col_txt = "#C0392B"
-
 st.markdown(
     "<div class='" + box_cls + "'>"
     "<b style='color:" + col_txt + ";font-size:1.1em;'>"
